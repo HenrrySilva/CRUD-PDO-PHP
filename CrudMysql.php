@@ -12,7 +12,7 @@ class CrudMysql extends ConexaoMysql{
 
 	/**
 	*
-	* Armazena total de de tabela afetada
+	* total de tabela afetada
 	*
 	* @var int
 	*/
@@ -70,7 +70,7 @@ class CrudMysql extends ConexaoMysql{
 
 	/**
 	*
-	*
+	* select MYSQL
 	*
 	* @return array multi
 	*
@@ -83,6 +83,13 @@ class CrudMysql extends ConexaoMysql{
 
 	}
 
+    /**
+	*
+	* update MYSQL
+	*
+	* @return boolean
+	*
+	*/
 	public function updateMysql($stmt, $param = []) : bool{
 
 		$stmt_exec = $this->prepareMysql($stmt, $param);
@@ -101,6 +108,13 @@ class CrudMysql extends ConexaoMysql{
 
 	}
 
+    /**
+	*
+	* delete MYSQL
+	*
+	* @return boolean
+	*
+	*/
 	public function deleteMysql($stmt, $param = []){
 		$stmt_exec = $this->prepareMysql($stmt, $param);
 
