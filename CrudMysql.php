@@ -47,37 +47,57 @@ class CrudMysql extends ConexaoMysql{
 
 	/**
 	*
-	* Metodo de insert MYSQL
+	* function insert MYSQL
 	*
-	* @param 1 -> string  @param 2 -> array
+	* @param string table_name - name table
+	* @param array params - ex
+	* [':coloumn' => $value]
 	*
-	* @return boolean
-	*/
-	public function insertMysql($stmt, $param = []): bool{
+	* @return int - Tabela afetada
+	**/
+	public function save(string $table_name, array $params) :int{
 
-		$stmt_exec = $this->prepareMysql($stmt, $param);
+		$keys = array_keys($params);
 
-		$countInsert = $stmt_exec->rowCount();
+		$values_str = implode(",", $keys);
+		$column = str_replace(":", "", $values_str);
+		$sql = "INSERT INTO {$table_name} ({$column}) VALUES ({$values_str})";
 
-		$this->columnAffected = $countInsert;
+		$stmt_exec = $this->prepareMysql($sql, $params);
 
-		if($countInsert > 0){
-			return true;
-		}else{
-			return false;
-		}
+		$rowCount = $stmt_exec->rowCount();
+
+		return $rowCount;
 	}
 
 	/**
 	*
 	* select MYSQL
 	*
+	* @param string table_name - Nome da tabela
+	* @param array where - condição do select
+	* @param string opr = operador
+	* @param string columns = colunas a ser consultadas
 	* @return array multi
 	*
 	*/
-	public function selectMysql($stmt, $param = []){
+	public function find(string $table_name, array $where = [], ?string $opr = "AND", string $columns = "*") :array{
 
-		$stmt_exec = $this->prepareMysql($stmt, $param);
+		$sql = "SELECT {$columns} FROM {$table_name}";
+
+		if($where != null){
+
+			$condition = "";
+			foreach ($where as $key => $value) {
+				$condition .= str_replace(":", "", $key)."=".$key." {$opr} ";
+			}
+
+			$condition = substr($condition, 0, -4);
+
+			$sql = "SELECT {$columns} FROM {$table_name} WHERE {$condition}";
+		}
+
+		$stmt_exec = $this->prepareMysql($sql, $where);
 
 		return $stmt_exec->fetchAll(PDO::FETCH_ASSOC);
 
