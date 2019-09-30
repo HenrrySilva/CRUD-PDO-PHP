@@ -6,17 +6,9 @@
 *
 **/
 
-include_once 'ConexaoMysql.php';
+include 'ConexaoMysql.php';
 
 class CrudMysql extends ConexaoMysql{
-
-	/**
-	*
-	* total de tabela afetada
-	*
-	* @var int
-	*/
-	public $columnAffected;
 
 	public function __construct(){
 		parent::__construct();
@@ -81,7 +73,7 @@ class CrudMysql extends ConexaoMysql{
 	* @return array multi
 	*
 	*/
-	public function find(string $table_name, array $where = [], ?string $opr = "AND", string $columns = "*") :array{
+	public function find(string $table_name, array $where = [], ?string $opr = "AND", string $columns = "*", string $operador = "=") :array{
 
 		$sql = "SELECT {$columns} FROM {$table_name}";
 
@@ -89,7 +81,7 @@ class CrudMysql extends ConexaoMysql{
 
 			$condition = "";
 			foreach ($where as $key => $value) {
-				$condition .= str_replace(":", "", $key)."=".$key." {$opr} ";
+				$condition .= str_replace(":", "", $key)."{$operador}".$key." {$opr} ";
 			}
 
 			$condition = substr($condition, 0, -4);
@@ -110,21 +102,29 @@ class CrudMysql extends ConexaoMysql{
 	* @return boolean
 	*
 	*/
-	public function updateMysql($stmt, $param = []) : bool{
+	public function update(string $table_name, array $params, ?array $where, string $id_table = "") : bool{
 
-		$stmt_exec = $this->prepareMysql($stmt, $param);
+		$set = "";
+		foreach ($params as $key => $value) {
 
-		$countUpdate = $stmt_exec->rowCount();
-
-		$this->columnAffected = $countUpdate;
-
-		if($countUpdate > 0){
-			return true;
-		}else{
-			return false;
+			$set .= str_replace(":", "", $key)." = '{$value}', ";
 		}
 
+		$sql = "UPDATE {$table_name} SET {$set}";
 
+		if($where != null){
+			$condition = "";
+			foreach ($where as $key => $value) {
+				$condition .= str_replace(":", "", $key)." = {$key}";
+			}
+
+			$set = substr($set, 0, -2);
+			$sql = "UPDATE {$table_name} SET {$set} WHERE {$condition}";
+		}
+
+		$stmt_exec = $this->prepareMysql($sql, $where);
+
+		return $stmt_exec->rowCount();
 
 	}
 
@@ -138,27 +138,10 @@ class CrudMysql extends ConexaoMysql{
 	public function deleteMysql($stmt, $param = []){
 		$stmt_exec = $this->prepareMysql($stmt, $param);
 
-		$countDelete = $stmt_exec->rowCount();
+		return $stmt_exec->rowCount();
 
-		$this->columnAffected = $countDelete;
 
-		if($countDelete > 0){
-			return true;
-		}else{
-			return false;
-		}
 	}
 
-
-	/**
-	*
-	*  methods GET's e SET's
-	* 
-	*
-	*/
-
-	public function getColumnAffected(){
-		return $this->columnAffected;
-	}
 }
 ?>
