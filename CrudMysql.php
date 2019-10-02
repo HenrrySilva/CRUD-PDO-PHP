@@ -10,8 +10,32 @@ include 'ConexaoMysql.php';
 
 class CrudMysql extends ConexaoMysql{
 
+	/**
+	*
+	* @var Array de constant PARAM_* PDO
+	*/
+	private const ARRAY_PDO_CONSTANT = [
+		'string' => PDO::PARAM_STR,
+		'integer' => PDO::PARAM_INT,
+		'boolean' => PDO::PARAM_BOOL,
+		'NULL' => PDO::PARAM_NULL
+	];
+
 	public function __construct(){
 		parent::__construct();
+	}
+
+	/**
+	*
+	* @param value
+	* @return PDO CONSTANT PARAM_*
+	*/
+	private function dataType($data){
+
+		if(array_key_exists(gettype($data), self::ARRAY_PDO_CONSTANT))
+			return self::ARRAY_PDO_CONSTANT[gettype($data)];
+		else
+			return PDO::PARAM_STR;
 	}
 
 	/**
@@ -28,7 +52,7 @@ class CrudMysql extends ConexaoMysql{
 		$stmt = $this->conn->prepare($sql);
 
 		foreach ($param as $key => $value) {
-			$stmt->bindValue($key, $value);
+			$stmt->bindValue($key, $value, $this->dataType($value));
 		}
 
 		// exec
@@ -144,4 +168,5 @@ class CrudMysql extends ConexaoMysql{
 	}
 
 }
+
 ?>
