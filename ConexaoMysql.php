@@ -30,8 +30,12 @@ class ConexaoMysql{
 	public function __construct(){
 
 		if($this->conn == null){
-			$this->conn = new PDO("mysql:host=".LOCAL_HOST.";dbname=".BD_NOME.";port=".PORTA, USER_MYSQL, PASS_MYSQL);
-			$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			try{
+				$this->conn = new PDO("mysql:host=".LOCAL_HOST.";dbname=".BD_NOME.";port=".PORTA, USER_MYSQL, PASS_MYSQL);
+				$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			}catch(PDOException $e){
+				echo $e->getMessage();
+			}
 		}
 
 	}
