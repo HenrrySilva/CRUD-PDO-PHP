@@ -6,11 +6,14 @@
 *
 **/
 
-include 'ConexaoMysql.php';
+//namespace Connect;
+
+include __DIR__.'/ConexaoMysql.php';
 
 class CrudMysql extends ConexaoMysql{
 
-	private string $table;
+	private $table;
+    private $columnPrimary;
 
 	/**
 	*
@@ -23,8 +26,10 @@ class CrudMysql extends ConexaoMysql{
 		'NULL' => PDO::PARAM_NULL
 	];
 
-	public function __construct(string $table){
+	public function __construct(string $table, string $columnPrimary = ":id"){
+        parent::__construct();
 		$this->table = $table;
+        $this->columnPrimary = $columnPrimary;
 	}
 
 	/**
@@ -35,8 +40,8 @@ class CrudMysql extends ConexaoMysql{
 	* @return PDO CONSTANT PARAM_*
 	*
 	*/
-	private function dataType(array $data){
-
+	private function dataType($data){
+        
 		if(array_key_exists(gettype($data), self::ARRAY_PDO_CONSTANT))
 			return self::ARRAY_PDO_CONSTANT[gettype($data)];
 		else
@@ -53,7 +58,7 @@ class CrudMysql extends ConexaoMysql{
 	*
 	*/
 	private function prepareMysql($sql, $param){
-
+        
 		$stmt = $this->conn->prepare($sql);
 
 		foreach ($param as $key => $value) {
@@ -113,7 +118,7 @@ class CrudMysql extends ConexaoMysql{
 
 			$sql = "SELECT {$columns} FROM {$this->table} WHERE {$condition}";
 		}
-
+        
 		$stmt_exec = $this->prepareMysql($sql, $where);
 
 		return $stmt_exec->fetchAll(PDO::FETCH_ASSOC);
@@ -149,7 +154,7 @@ class CrudMysql extends ConexaoMysql{
 			$set = substr($set, 0, -2);
 			$sql = "UPDATE {$this->table} SET {$set} WHERE {$condition}";
 		}
-
+        
 		$stmt_exec = $this->prepareMysql($sql, $where);
 
 		return $stmt_exec->rowCount();
@@ -170,6 +175,10 @@ class CrudMysql extends ConexaoMysql{
 
 
 	}
+    
+    public function findById(int $id){
+        return $this->find([$this->columnPrimary => $id]);
+    }
 
 }
 
