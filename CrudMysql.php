@@ -10,6 +10,8 @@ include 'ConexaoMysql.php';
 
 class CrudMysql extends ConexaoMysql{
 
+	private string $table;
+
 	/**
 	*
 	* @var Array de constant PARAM_* PDO
@@ -21,16 +23,19 @@ class CrudMysql extends ConexaoMysql{
 		'NULL' => PDO::PARAM_NULL
 	];
 
-	public function __construct(){
-		parent::__construct();
+	public function __construct(string $table){
+		$this->table = $table;
 	}
 
 	/**
+	* Set type PDO PARAM 
 	*
-	* @param value
+	* @access private
+	* @param array $data
 	* @return PDO CONSTANT PARAM_*
+	*
 	*/
-	private function dataType($data){
+	private function dataType(array $data){
 
 		if(array_key_exists(gettype($data), self::ARRAY_PDO_CONSTANT))
 			return self::ARRAY_PDO_CONSTANT[gettype($data)];
@@ -40,10 +45,10 @@ class CrudMysql extends ConexaoMysql{
 
 	/**
 	*
-	* metodo prepare MYSQL
-	*
-	* @param 1 -> string  @param 2 -> array
-	*
+	* Metodo prepare MYSQL
+	* @access private
+	* @param string $sql
+	* @param array $param
 	* @return stmt
 	*
 	*/
@@ -63,21 +68,17 @@ class CrudMysql extends ConexaoMysql{
 
 	/**
 	*
-	* function insert MYSQL
-	*
-	* @param string table_name - name table
-	* @param array params - ex
-	* [':coloumn' => $value]
-	*
-	* @return int - Tabela afetada
+	* Method insert MYSQL
+	* @access public
+	* @param array $params
+	* @return int
 	**/
-	public function save(string $table_name, array $params) :int{
+	public function save(array $params) :int{
 
-		$keys = array_keys($params);
+		$values_str = implode(",", array_keys($params));
 
-		$values_str = implode(",", $keys);
 		$column = str_replace(":", "", $values_str);
-		$sql = "INSERT INTO {$table_name} ({$column}) VALUES ({$values_str})";
+		$sql = "INSERT INTO {$this->table} ({$column}) VALUES ({$values_str})";
 
 		$stmt_exec = $this->prepareMysql($sql, $params);
 
@@ -89,17 +90,17 @@ class CrudMysql extends ConexaoMysql{
 	/**
 	*
 	* select MYSQL
-	*
-	* @param string table_name - Nome da tabela
-	* @param array where - condição do select
-	* @param string opr = operador
-	* @param string columns = colunas a ser consultadas
-	* @return array multi
+	* @access public
+	* @param array $where [ NOT REQUIRE ]
+	* @param string $opr [ NOT REQUIRE ]
+	* @param string $columns [ NOT REQUIRE ]
+	* @param string $operador [ NOT REQUIRE ]
+	* @return array 
 	*
 	*/
-	public function find(string $table_name, array $where = [], ?string $opr = "AND", string $columns = "*", string $operador = "=") :array{
+	public function find(array $where = [], ?string $opr = "AND", string $columns = "*", string $operador = "=") :array{
 
-		$sql = "SELECT {$columns} FROM {$table_name}";
+		$sql = "SELECT {$columns} FROM {$this->table}";
 
 		if($where != null){
 
@@ -110,7 +111,7 @@ class CrudMysql extends ConexaoMysql{
 
 			$condition = substr($condition, 0, -4);
 
-			$sql = "SELECT {$columns} FROM {$table_name} WHERE {$condition}";
+			$sql = "SELECT {$columns} FROM {$this->table} WHERE {$condition}";
 		}
 
 		$stmt_exec = $this->prepareMysql($sql, $where);
@@ -122,11 +123,14 @@ class CrudMysql extends ConexaoMysql{
     /**
 	*
 	* update MYSQL
-	*
+	* @access public
+	* @param array $params
+	* @param array $where
+	* @param string $id_table
 	* @return boolean
 	*
 	*/
-	public function update(string $table_name, array $params, ?array $where, string $id_table = "") : bool{
+	public function update(array $params, ?array $where, string $id_table = "") : bool{
 
 		$set = "";
 		foreach ($params as $key => $value) {
@@ -134,7 +138,7 @@ class CrudMysql extends ConexaoMysql{
 			$set .= str_replace(":", "", $key)." = '{$value}', ";
 		}
 
-		$sql = "UPDATE {$table_name} SET {$set}";
+		$sql = "UPDATE {$this->table} SET {$set}";
 
 		if($where != null){
 			$condition = "";
@@ -143,7 +147,7 @@ class CrudMysql extends ConexaoMysql{
 			}
 
 			$set = substr($set, 0, -2);
-			$sql = "UPDATE {$table_name} SET {$set} WHERE {$condition}";
+			$sql = "UPDATE {$this->table} SET {$set} WHERE {$condition}";
 		}
 
 		$stmt_exec = $this->prepareMysql($sql, $where);
